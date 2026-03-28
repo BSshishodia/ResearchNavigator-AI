@@ -1,0 +1,46 @@
+# --- Core Framework & Security ---
+Flask==3.1.2
+pymongo==4.15.3
+python-dotenv==1.1.1
+Werkzeug==3.1.3
+requests==2.32.5
+certifi==2025.10.5
+itsdangerous==2.2.0
+Jinja2==3.1.6
+MarkupSafe==3.0.3
+
+# --- Document Processing ---
+PyMuPDF==1.26.4
+python-docx==1.2.0
+nltk==3.9.2
+openpyxl==3.1.5
+lxml==6.0.2
+
+# --- Machine Learning Stack (Loosened to Solve Conflicts) ---
+# We allow pip to pick the best version to solve the Thinc/Scipy conflict
+numpy>=2.0.0
+scipy
+scikit-learn
+torch
+transformers
+sentence-transformers
+keybert
+networkx
+rouge_score
+gTTS
+
+# --- NLP & Spacy ---
+spacy==3.8.7
+thinc==8.3.6
+blis==1.3.0
+en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
+
+# --- Support Utilities ---
+pydantic
+tqdm
+joblib
+click
+colorama
+shellingham
+typer
+rich

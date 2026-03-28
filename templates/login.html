@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<!--        <button 
+            type="submit" 
+            id="search-button"
+            class="bg-indigo-600 text-white font-bold px-6 py-3 rounded-xl hover:bg-indigo-700 transition duration-150 shadow-lg flex items-center space-x-2 disabled:bg-indigo-400"
+            {% if not gemini_key_available %}disabled{% endif %}
+            >
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PaperIQ Login & Register</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body { font-family: 'Inter', sans-serif; background-color: #f7f9fb; }
+.password-strength-bar {
+height: 5px;
+width: 0;
+transition: width 0.3s ease-in-out;
+}
+.weak { background-color: #f87171; }
+.medium { background-color: #fbbf24; }
+.strong { background-color: #34d399; }
+.gradient-text {
+    /* Text color using a blue-to-purple gradient */
+    background-image: linear-gradient(to right, #4f46e5, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+}
+</style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+<div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md">
+<h1 class="text-4xl font-extrabold text-gray-900 mb-6 text-center">
+    <a href="{{ url_for('home_route') }}" class="gradient-text" id="form-title">PaperIQ Login</a>
+</h1>
+
+    {% if error %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4" role="alert">
+            {{ error }}
+        </div>
+    {% endif %}
+    
+    <div id="form-message" class="hidden bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-4" role="alert"></div>
+    <div id="error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4" role="alert"></div>
+
+    <form method="POST" action="{{ url_for('login_route') }}" id="login-form">
+        <div class="mb-4">
+            <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+            <input type="text" id="username" name="username" required 
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" 
+                   placeholder="Enter your username">
+        </div>
+        
+        <div class="mb-6">
+            <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <input type="password" id="password" name="password" required 
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" 
+                   placeholder="Enter your password">
+        </div>
+        
+        <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700 transition duration-150 shadow-md">
+            Log In
+        </button>
+    </form>
+
+    <form id="register-form" class="hidden">
+        <div class="mb-4">
+            <label for="reg_username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+            <input type="text" id="reg_username" name="reg_username" required 
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" 
+                   placeholder="Choose a username">
+        </div>
+
+        <div class="mb-4">
+            <label for="reg_email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input type="email" id="reg_email" name="reg_email" required 
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" 
+                   placeholder="Enter your email">
+        </div>
+        
+        <div class="mb-4">
+            <label for="reg_password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <input type="password" id="reg_password" name="reg_password" required 
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" 
+                   placeholder="More than 8 chars, with letters, numbers & symbols">
+            <div class="w-full bg-gray-200 rounded mt-1">
+                <div id="password-strength-bar" class="password-strength-bar rounded"></div>
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <label for="reg_confirm_password" class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+            <input type="password" id="reg_confirm_password" name="reg_confirm_password" required 
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" 
+                   placeholder="Re-enter your password">
+        </div>
+        
+        <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700 transition duration-150 shadow-md">
+            Register
+        </button>
+    </form>
+    
+    <form id="otp-form" class="hidden">
+        <div class="mb-4">
+            <label for="otp_username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+            <input type="text" id="otp_username" name="otp_username" required
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                   placeholder="Enter your username">
+        </div>
+        <div class="mb-6">
+            <label for="otp_code" class="block text-sm font-medium text-gray-700 mb-1">Verification Code</label>
+            <input type="text" id="otp_code" name="otp_code" required
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                   placeholder="Enter the code sent to your email">
+        </div>
+        <button type="submit" class="w-full bg-green-600 text-white font-semibold py-2.5 rounded-lg hover:bg-green-700 transition duration-150 shadow-md">
+            Verify
+        </button>
+    </form>
+
+    <div class="mt-6 text-center text-gray-500">
+        <span id="form-switch-text">Don't have an account? </span>
+        <a href="#" class="text-blue-600 hover:underline" id="form-switch-link">Sign Up</a>
+    </div>
+</div>
+
+<script>
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const otpForm = document.getElementById('otp-form');
+    const formTitleLink = document.getElementById('form-title');
+    const formSwitchText = document.getElementById('form-switch-text');
+    const formSwitchLink = document.getElementById('form-switch-link');
+    const formMessage = document.getElementById('form-message');
+    const errorMessage = document.getElementById('error-message');
+    const regPasswordInput = document.getElementById('reg_password');
+    const passwordStrengthBar = document.getElementById('password-strength-bar');
+
+    function showMessage(message, isError = false) {
+        const msgElement = isError ? errorMessage : formMessage;
+        // Clear existing classes and set new state
+        errorMessage.classList.add('hidden');
+        formMessage.classList.add('hidden');
+
+        msgElement.textContent = message;
+        msgElement.classList.remove('hidden');
+        
+        if (isError) {
+            msgElement.classList.remove('bg-green-100', 'text-green-700');
+            msgElement.classList.add('bg-red-100', 'text-red-700');
+        } else {
+            msgElement.classList.remove('bg-red-100', 'text-red-700');
+            msgElement.classList.add('bg-green-100', 'text-green-700');
+        }
+    }
+
+    function clearMessages() {
+        errorMessage.classList.add('hidden');
+        formMessage.classList.add('hidden');
+    }
+
+    formSwitchLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        clearMessages();
+        // Check if we are currently on the register form (the one that is NOT hidden)
+        if (!registerForm.classList.contains('hidden')) {
+            // Switch to login form
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+            otpForm.classList.add('hidden');
+            formTitleLink.textContent = 'PaperIQ Login';
+            formSwitchText.textContent = "Don't have an account? ";
+            formSwitchLink.textContent = "Sign Up";
+        } else {
+            // Switch to register form
+            loginForm.classList.add('hidden');
+            registerForm.classList.remove('hidden');
+            otpForm.classList.add('hidden');
+            formTitleLink.textContent = 'PaperIQ Register';
+            formSwitchText.textContent = "Already have an account? ";
+            formSwitchLink.textContent = "Log In";
+        }
+    });
+
+    regPasswordInput.addEventListener('input', function() {
+        const password = this.value;
+        let strength = 0;
+        if (password.length >= 8) strength++;
+        if (/[a-z]/.test(password)) strength++;
+        if (/[A-Z]/.test(password)) strength++;
+        if (/[0-9]/.test(password)) strength++;
+        if (/[^A-Za-z0-9]/.test(password)) strength++;
+
+        let barWidth = (strength / 5) * 100;
+        passwordStrengthBar.style.width = barWidth + '%';
+
+        passwordStrengthBar.className = 'password-strength-bar rounded';
+        if (strength <= 2) {
+            passwordStrengthBar.classList.add('weak');
+        } else if (strength <= 4) {
+            passwordStrengthBar.classList.add('medium');
+        } else {
+            passwordStrengthBar.classList.add('strong');
+        }
+    });
+
+    // Register form submission
+    document.getElementById('register-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        clearMessages();
+        
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData.entries());
+
+        // Handle client-side password mismatch
+        if (data.reg_password !== data.reg_confirm_password) {
+            showMessage("Passwords do not match!", true);
+            return;
+        }
+
+        fetch('/register', {
+            method: 'POST',
+            body: new URLSearchParams(data),
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            }
+        })
+        .then(response => {
+            // Flask returns JSON response, so we handle success/error via JSON body
+            if (!response.ok) {
+                return response.json().then(err => { throw new Error(err.message); });
+            }
+            return response.json();
+        })
+        .then(result => {
+            showMessage(result.message);
+            
+            // Show OTP form and hide others
+            loginForm.classList.add('hidden');
+            registerForm.classList.add('hidden');
+            otpForm.classList.remove('hidden');
+            formTitleLink.textContent = 'Verify Your Email';
+            formSwitchText.textContent = "Resend code? ";
+            formSwitchLink.textContent = "Click here";
+
+            // Autofill username
+            document.getElementById('otp_username').value = data.reg_username;
+        })
+        .catch(error => {
+            showMessage(error.message, true);
+        });
+    });
+
+    // OTP form submission
+    document.getElementById('otp-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        clearMessages();
+        
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData.entries());
+
+        fetch('/verify_otp', {
+            method: 'POST',
+            body: new URLSearchParams(data),
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => { throw new Error(err.message); });
+            }
+            return response.json();
+        })
+        .then(result => {
+            showMessage(result.message);
+            
+            // Show login form on successful verification
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+            otpForm.classList.add('hidden');
+            formTitleLink.textContent = 'PaperIQ Login';
+            formSwitchText.textContent = "Don't have an account? ";
+            formSwitchLink.textContent = "Sign Up";
+        })
+        .catch(error => {
+            showMessage(error.message, true);
+        });
+    });
+</script>
+
+</body>
+</html>

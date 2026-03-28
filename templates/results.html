@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analysis Report | PaperIQ Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
+.result-box {
+background-color: white;
+padding: 1.5rem;
+border-radius: 0.75rem;
+box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+border: 1px solid #e5e7eb;
+}
+.section-title {
+font-size: 1.25rem;
+font-weight: 700;
+color: #1f2937;
+margin-bottom: 0.75rem;
+border-bottom: 1px solid #e5e7eb;
+padding-bottom: 0.25rem;
+}
+.tts-button {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+background-color: #4f46e5;
+color: white;
+border-radius: 9999px;
+padding: 0.5rem;
+transition: background-color 0.15s ease-in-out;
+cursor: pointer;
+}
+.tts-button:hover {
+background-color: #4338ca;
+}
+.gradient-text {
+    /* Text color using a blue-to-purple gradient */
+    background-image: linear-gradient(to right, #4f46e5, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+}
+</style>
+</head>
+<body>
+
+<!-- Navigation Bar -->
+<nav class="bg-white shadow-md sticky top-0 z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <div class="flex-shrink-0">
+                <!-- UPDATED: Colorful, clickable title -->
+                <a href="{{ url_for('home_route') }}" class="text-3xl font-extrabold gradient-text">PaperIQ</a>
+            </div>
+            <div class="flex space-x-4 items-center">
+                <a href="{{ url_for('home_route') }}" class="text-gray-600 font-medium hover:text-indigo-600 transition duration-150 border-b-2 border-transparent hover:border-indigo-500">
+                    Home
+                </a>
+                <a href="{{ url_for('upload_route') }}" class="text-gray-900 font-semibold hover:text-indigo-600 transition duration-150 border-b-2 border-indigo-500">
+                    Document Analysis
+                </a>
+                <a href="{{ url_for('chat_route') }}" class="text-gray-600 font-medium hover:text-indigo-600 transition duration-150 border-b-2 border-transparent hover:border-indigo-500">
+                    AI Assistant
+                </a>
+                <a href="{{ url_for('history_route') }}" class="text-gray-600 font-medium hover:text-indigo-600 transition duration-150 border-b-2 border-transparent hover:border-indigo-500">
+                    History
+                </a>
+                <span class="text-gray-400">|</span>
+                <span class="text-sm font-medium text-gray-700">Hello, {{ session.get('username', 'User') }}!</span>
+                <a href="{{ url_for('logout_route') }}" class="flex items-center space-x-1 px-3 py-1 bg-red-500 text-white text-sm font-semibold rounded-lg hover:bg-red-600 transition duration-150 shadow-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewbox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container mx-auto p-6 md:p-10">
+    <h1 class="text-4xl font-extrabold text-gray-900 mb-2">Analysis Dashboard</h1>
+    <h2 class="text-xl font-medium text-gray-700 mb-6">Summary for: <span class="font-bold text-indigo-600">{{ results.filename }}</span></h2>
+
+    <!-- Action Button Section: Navigate to Visuals -->
+    {% if results.visuals_ready %}
+    <div class="mb-8 flex justify-end">
+        <a href="{{ url_for('visuals_route') }}" 
+           class="flex items-center space-x-2 px-6 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition duration-200 shadow-xl shadow-green-300">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewbox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 4v16M17 4v16M3 8h18M3 16h18" />
+            </svg>
+            <span>View Detailed Visualizations</span>
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Main Grid Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <div class="lg:col-span-2 space-y-8">
+            <!-- New Tab Container -->
+            <div class="result-box p-0">
+                <div class="flex border-b border-gray-200">
+                    <button id="tab-abstractive" 
+                            class="tab-button px-6 py-3 font-semibold text-sm transition-colors duration-150 border-b-2 border-indigo-600 text-indigo-600 hover:text-indigo-700 focus:outline-none">
+                        Abstractive Summary
+                    </button>
+                    <button id="tab-extractive" 
+                            class="tab-button px-6 py-3 font-semibold text-sm transition-colors duration-150 border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none">
+                        Extractive Summary
+                    </button>
+                </div>
+                
+                <div id="content-abstractive" class="tab-content p-6">
+                    <div class="flex justify-between items-start mb-3">
+                        <h3 class="text-lg font-bold text-indigo-600">AI Generated Synopsis</h3>
+                        <button onclick="readTextAloud('abstractive-summary-text')" class="tts-button" title="Read Aloud">
+                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewbox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M9.383 3.017a1 1 0 01.358-.876 1 1 0 011.071-.168A10.011 10.011 0 0115 5.5V11a.5.5 0 01-.8.4l-2.433 1.826A1.25 1.25 0 0010.5 14H8.75a.75.75 0 00-.75.75v3.5a.75.75 0 001.5 0v-3.5a.75.75 0 00-.75-.75h-1.5a.75.75 0 00-.75.75v3.5a.75.75 0 001.5 0v-3.5a.75.75 0 00-.75-.75H5.5a.5.5 0 01-.8-.4V5.5a10.011 10.011 0 014.269-3.415z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                    <p id="abstractive-summary-text" class="text-gray-700 leading-relaxed">{{ results.abstractive_summary }}</p>
+                </div>
+                
+                <div id="content-extractive" class="tab-content p-6 hidden">
+                    <div class="flex justify-between items-start mb-3">
+                        <h3 class="text-lg font-bold text-indigo-600">Key Sentences from Text</h3>
+                        <button onclick="readTextAloud('extractive-summary-text')" class="tts-button" title="Read Aloud">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewbox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M9.383 3.017a1 1 0 01.358-.876 1 1 0 011.071-.168A10.011 10.011 0 0115 5.5V11a.5.5 0 01-.8.4l-2.433 1.826A1.25 1.25 0 0010.5 14H8.75a.75.75 0 00-.75.75v3.5a.75.75 0 001.5 0v-3.5a.75.75 0 00-.75-.75h-1.5a.75.75 0 00-.75.75v3.5a.75.75 0 001.5 0v-3.5a.75.75 0 00-.75-.75H5.5a.5.5 0 01-.8-.4V5.5a10.011 10.011 0 014.269-3.415z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                    <p id="extractive-summary-text" class="text-gray-700 leading-relaxed">{{ results.extractive_summary }}</p>
+                </div>
+            </div>
+
+            <!-- Key Insights Box -->
+            <div class="result-box">
+                <h3 class="section-title">Key Insights (Focus on Findings)</h3>
+                <ul class="list-disc pl-5 space-y-2 text-gray-700">
+                    {% for insight in results.insights %}
+                        <li>{{ insight }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="space-y-8">
+            <!-- ROUGE Scores Box -->
+            <div class="bg-green-50 p-6 rounded-xl shadow-lg border border-gray-100">
+                <h3 class="section-title text-green-700">ROUGE F1 Scores (Quality Check)</h3>
+                <p class="text-sm text-gray-600 mb-3">Abstractive vs. Extractive summary comparison.</p>
+                <ul class="space-y-1 text-sm font-semibold">
+                    {% for metric, score in results.rouge_scores.items() %}
+                        <li class="flex justify-between items-center">
+                            <span class="text-gray-800">{{ metric|upper }}</span>
+                            <span class="text-green-800 bg-green-200 px-2 py-0.5 rounded">{{ '{:.4f}'.format(score) }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+             <!-- Keywords Sample Box (No scores here, for simplicity) -->
+            <div class="result-box">
+                <h3 class="section-title">Top 5 Keywords</h3>
+                <div class="flex flex-wrap gap-2">
+                    {% for keyword in results.keywords %}
+                        <span class="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full shadow-sm">{{ keyword }}</span>
+                    {% endfor %}
+                </div>
+                <p class="text-xs text-gray-500 mt-2">View all keywords, scores, and entity breakdowns on the Visualizations page.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Raw Text Sample -->
+    <div class="result-box mt-8">
+        <h3 class="section-title">Document Sample (First 2000 characters)</h3>
+        <pre class="whitespace-pre-wrap text-sm text-gray-500 bg-gray-50 p-4 rounded-lg border border-gray-200 h-48 overflow-y-auto">{{ results.raw_text_sample }}</pre>
+    </div>
+</div>
+
+<script>
+    function readTextAloud(textId) {
+        const textElement = document.getElementById(textId);
+        if (!textElement) {
+            console.error("Text element not found with ID:", textId);
+            return;
+        }
+
+        const textToSpeak = textElement.textContent || textElement.innerText;
+        if (window.speechSynthesis) {
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
+            window.speechSynthesis.speak(utterance);
+        } else {
+            const messageBox = document.createElement('div');
+            messageBox.className = 'fixed bottom-5 right-5 p-3 bg-red-500 text-white rounded-lg shadow-xl z-50';
+            messageBox.textContent = 'Text-to-speech is not fully supported in your current environment.';
+            document.body.appendChild(messageBox);
+            setTimeout(() => messageBox.remove(), 4000);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabs = document.querySelectorAll('.tab-button');
+        const contents = document.querySelectorAll('.tab-content');
+
+        // Set the active tab initially (Abstractive is first)
+        const activeTabId = 'tab-abstractive';
+        const activeTab = document.getElementById(activeTabId);
+        const activeContent = document.getElementById('content-abstractive');
+        
+        if (activeTab && activeContent) {
+            activeTab.classList.add('text-indigo-600', 'border-indigo-600');
+            activeContent.classList.remove('hidden');
+        }
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Deactivate all tabs and hide all content
+                tabs.forEach(t => {
+                    t.classList.remove('text-indigo-600', 'border-indigo-600');
+                    t.classList.add('text-gray-500', 'border-transparent');
+                });
+                contents.forEach(c => c.classList.add('hidden'));
+
+                // Activate clicked tab and show relevant content
+                tab.classList.remove('text-gray-500', 'border-transparent');
+                tab.classList.add('text-indigo-600', 'border-indigo-600');
+                
+                const targetId = tab.id.replace('tab-', 'content-');
+                document.getElementById(targetId).classList.remove('hidden');
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

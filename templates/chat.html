@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Research Assistant | PaperIQ</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Marked.js is used to render the AI's response (which is Markdown) as styled HTML -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.1/marked.min.js"></script>
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+/* Calculate chat window height dynamically */
+.chat-container { height: calc(100vh - 4rem - 96px); max-height: 800px; }
+.gradient-text {
+    background-image: linear-gradient(to right, #4f46e5, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+}
+
+/* Custom styles for Markdown rendering */
+.ai-message h4 { font-size: 1.125rem; font-weight: 700; margin-top: 1rem; margin-bottom: 0.5rem; color: #4338ca; }
+.ai-message ul { list-style-type: disc; margin-left: 1.5rem; }
+.ai-message blockquote { border-left: 4px solid #a5b4fc; padding-left: 1rem; color: #4b5563; margin: 1rem 0; background-color: #eef2ff; border-radius: 0.25rem; }
+.result-card { transition: all 0.15s ease-in-out; }
+.result-card.selected { border-color: #4f46e5; background-color: #eef2ff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+</style>
+</head>
+<body>
+
+<!-- Navigation Bar -->
+<nav class="bg-white shadow-md sticky top-0 z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <div class="flex-shrink-0">
+                <a href="{{ url_for('home_route') }}" class="text-3xl font-extrabold gradient-text">PaperIQ</a>
+            </div>
+            <div class="flex space-x-4 items-center">
+                <a href="{{ url_for('home_route') }}" class="text-gray-600 font-medium hover:text-indigo-600 transition duration-150 border-b-2 border-transparent hover:border-indigo-500">
+                    Home
+                </a>
+                <a href="{{ url_for('upload_route') }}" class="text-gray-600 font-medium hover:text-indigo-600 transition duration-150 border-b-2 border-transparent hover:border-indigo-500">
+                    Document Analysis
+                </a>
+                <a href="{{ url_for('chat_route') }}" class="text-gray-900 font-semibold hover:text-indigo-600 transition duration-150 border-b-2 border-indigo-500">
+                    AI Assistant
+                </a>
+                <a href="{{ url_for('history_route') }}" class="text-gray-600 font-medium hover:text-indigo-600 transition duration-150 border-b-2 border-transparent hover:border-indigo-500">
+                    History
+                </a>
+                <span class="text-gray-400">|</span>
+                <span class="text-sm font-medium text-gray-700">Hello, {{ session.get('username', 'User') }}!</span>
+                <a href="{{ url_for('logout_route') }}" class="flex items-center space-x-1 px-3 py-1 bg-red-500 text-white text-sm font-semibold rounded-lg hover:bg-red-600 transition duration-150 shadow-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewbox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="max-w-4xl mx-auto p-6 md:p-10">
+    <h1 class="text-3xl font-extrabold text-gray-900 mb-2">AI Research Assistant</h1>
+    <p class="text-gray-600 mb-6">Ask questions, search for papers, and get synthesized summaries using Gemini and Google Search.</p>
+
+    <!-- Warning if API Key is missing -->
+    {% if not gemini_key_available %}
+    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6" role="alert">
+        <p class="font-bold">API Key Missing</p>
+        <p class="text-sm">The **GEMINI_API_KEY** is not set in your `.env` file. The search functionality will not work until this is corrected.</p>
+    </div>
+    {% endif %}
+
+    <!-- Chat/Result Display Area -->
+    <div id="chat-window" class="chat-container overflow-y-auto bg-white rounded-xl shadow-inner p-4 mb-4 space-y-4 border border-gray-200">
+        <div class="p-3 bg-indigo-50 text-indigo-800 rounded-lg shadow-sm">
+            <p class="font-semibold">PaperIQ Bot:</p>
+            <p>Hello! How can I help with your research today? Try asking me to **"Find recent papers on quantum computing in 2024"** or a direct question.</p>
+        </div>
+    </div>
+
+    <!-- Multi-Analysis Action Button (Hidden by default, fixed at bottom) -->
+    <div id="analysis-actions" class="hidden fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-2xl justify-center items-center space-x-4 z-20">
+        <p id="selection-count" class="text-sm font-medium text-gray-600">0/5 documents selected.</p>
+        <button id="multi-analyze-button" disabled
+                class="bg-green-600 text-white font-bold px-6 py-3 rounded-xl hover:bg-green-700 transition duration-150 shadow-lg flex items-center space-x-2 disabled:bg-green-400">
+            <i class="fas fa-chart-line text-lg"></i>
+            <span>Run Multi-Analysis</span>
+        </button>
+    </div>
+
+    <!-- Input Form (Search Bar) -->
+    <form id="search-form" class="flex space-x-3">
+        <input type="text" id="query-input" placeholder="Search for papers, ask a question, or request a summary..." required
+               class="flex-grow px-5 py-3 border border-gray-300 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 text-lg shadow-lg">
+        <button 
+            type="submit" 
+            id="search-button"
+            class="bg-indigo-600 text-white font-bold px-6 py-3 rounded-xl hover:bg-indigo-700 transition duration-150 shadow-lg flex items-center space-x-2 disabled:bg-indigo-400"
+            {% if not gemini_key_available %}disabled{% endif %}
+            >
+            <i class="fas fa-search text-lg"></i>
+            <span>Search</span>
+        </button>
+    </form>
+</div>
+
+<script>
+    const chatWindow = document.getElementById('chat-window');
+    const searchForm = document.getElementById('search-form');
+    const queryInput = document.getElementById('query-input');
+    const searchButton = document.getElementById('search-button');
+    const analysisActions = document.getElementById('analysis-actions');
+    const multiAnalyzeButton = document.getElementById('multi-analyze-button');
+    const selectionCount = document.getElementById('selection-count');
+
+    let selectedUrls = [];
+    let processing = false; // To prevent double submission
+
+    // --- UTILITIES ---
+
+    function scrollToBottom() {
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    function showMessage(text, isError = false) {
+        const messageBox = document.createElement('div');
+        messageBox.className = `fixed bottom-5 right-5 p-3 rounded-lg shadow-xl z-50 text-white ${isError ? 'bg-red-500' : 'bg-blue-500'}`;
+        messageBox.textContent = text;
+        document.body.appendChild(messageBox);
+        setTimeout(() => messageBox.remove(), 4000);
+    }
+    
+    function addMessage(sender, text, isMarkdown = false, analysisLink = null) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `p-3 rounded-xl shadow-md ${sender === 'user' ? 'bg-indigo-100 ml-auto text-right max-w-lg' : 'bg-gray-100 mr-auto max-w-3xl ai-message'}`;
+        
+        const senderLabel = document.createElement('p');
+        senderLabel.className = 'font-semibold mb-1 text-sm';
+        senderLabel.textContent = sender === 'user' ? 'You' : 'PaperIQ Bot';
+        messageDiv.appendChild(senderLabel);
+
+        const content = document.createElement('div');
+        if (isMarkdown) {
+            content.innerHTML = marked.parse(text);
+        } else {
+            content.textContent = text;
+        }
+        messageDiv.appendChild(content);
+
+        if (analysisLink) {
+            const link = document.createElement('a');
+            link.href = analysisLink;
+            link.className = 'mt-3 inline-flex items-center px-4 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition duration-150 text-sm';
+            link.innerHTML = '<i class="fas fa-chart-area mr-1"></i>View Full Analysis';
+            messageDiv.appendChild(link);
+        }
+
+        chatWindow.appendChild(messageDiv);
+        scrollToBottom();
+    }
+
+    // --- MULTI-ANALYSIS SELECTION LOGIC ---
+
+    function updateSelectionCount() {
+        selectionCount.textContent = `${selectedUrls.length}/5 documents selected.`;
+        multiAnalyzeButton.disabled = selectedUrls.length === 0 || selectedUrls.length > 5 || processing; 
+    }
+
+    function toggleSelection(url, cardElement) {
+        if (processing) return;
+
+        const index = selectedUrls.indexOf(url);
+
+        if (index > -1) {
+            // Deselect
+            selectedUrls.splice(index, 1);
+            cardElement.classList.remove('selected');
+            cardElement.querySelector('input[type="checkbox"]').checked = false;
+        } else if (selectedUrls.length < 5) {
+            // Select (up to 5)
+            selectedUrls.push(url);
+            cardElement.classList.add('selected');
+            cardElement.querySelector('input[type="checkbox"]').checked = true;
+        } else {
+            showMessage("You can select a maximum of 5 papers for multi-analysis.", true);
+            return;
+        }
+        updateSelectionCount();
+    }
+
+    function renderSearchResults(results) {
+        // Show the fixed multi-analysis action bar
+        analysisActions.classList.add('flex');
+        analysisActions.classList.remove('hidden');
+        
+        selectedUrls = []; // Clear previous selection
+        updateSelectionCount();
+
+        const searchContainer = document.createElement('div');
+        searchContainer.className = 'p-5 bg-white rounded-xl shadow-md mr-auto max-w-4xl text-left border border-gray-200';
+        searchContainer.innerHTML = '<p class="font-bold text-lg mb-4 text-indigo-700">🔍 Found Documents (Select up to 5 for Analysis):</p>';
+        
+        const resultsList = document.createElement('div');
+        resultsList.className = 'space-y-3';
+
+        results.forEach((result, index) => {
+            // Use createElement for robustness
+            const card = document.createElement('div');
+            card.className = 'result-card p-4 border border-gray-300 rounded-lg cursor-pointer hover:border-indigo-500 flex items-start space-x-3';
+            card.setAttribute('data-url', result.url);
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'h-5 w-5 mt-1 text-indigo-600 rounded focus:ring-indigo-500';
+            checkbox.onclick = (e) => e.stopPropagation(); 
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'flex-grow';
+            
+            contentDiv.innerHTML = `
+                <p class="font-semibold text-indigo-700 text-base mb-0.5">${index + 1}. ${result.title}</p>
+                <p class="text-gray-600 text-sm line-clamp-2">${result.snippet}</p>
+                <p class="text-xs text-blue-500 truncate mt-1">${result.url}</p>
+            `;
+
+            card.appendChild(checkbox);
+            card.appendChild(contentDiv);
+            
+            card.addEventListener('click', function() {
+                toggleSelection(result.url, this);
+            });
+            resultsList.appendChild(card);
+        });
+        
+        searchContainer.appendChild(resultsList);
+        chatWindow.appendChild(searchContainer);
+        scrollToBottom();
+    }
+
+    // --- LOADING AND MESSAGE HANDLERS (Simplified) ---
+    let loadingDiv = null;
+
+    function showLoading(text = 'Searching and analyzing...') {
+        loadingDiv = document.createElement('div');
+        loadingDiv.className = 'p-4 bg-gray-50 text-gray-500 rounded-xl shadow-md mr-auto max-w-3xl flex items-center space-x-3';
+        loadingDiv.innerHTML = `
+            <i class="fas fa-spinner fa-spin text-indigo-600"></i>
+            <p>${text}</p>
+        `;
+        chatWindow.appendChild(loadingDiv);
+        scrollToBottom();
+    }
+
+    function hideLoading() {
+        if (loadingDiv) {
+            loadingDiv.remove();
+            loadingDiv = null;
+        }
+    }
+
+    // --- FORM SUBMISSION HANDLERS ---
+    
+    // 1. Initial Search/Query Submission
+    searchForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        if (processing) return;
+        
+        analysisActions.classList.add('hidden'); // Hide the multi-analysis buttons for a fresh search
+        
+        const query = queryInput.value.trim();
+        if (!query) return;
+
+        addMessage('user', query);
+        queryInput.value = '';
+        
+        processing = true;
+        searchButton.disabled = true;
+        showLoading('Searching for documents...');
+
+        try {
+            const response = await fetch('{{ url_for("search_papers_api") }}', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: query })
+            });
+
+            const result = await response.json();
+            
+            hideLoading();
+
+            if (result.success) {
+                if (result.search_results && result.search_results.length > 0) {
+                    addMessage('ai', `I found ${result.search_results.length} relevant documents. Select up to 5 papers below for a comprehensive multi-analysis:`, false);
+                    renderSearchResults(result.search_results);
+                } else {
+                    addMessage('ai', result.message, true, result.analysis_url);
+                }
+            } else {
+                addMessage('ai', `Error: ${result.error}`, false);
+            }
+
+        } catch (error) {
+            hideLoading();
+            console.error('Fetch Error:', error);
+            addMessage('ai', `A critical network error occurred: ${error.message}`, false);
+        } finally {
+            processing = false;
+            searchButton.disabled = false;
+            updateSelectionCount(); // Re-enable multi-analysis button if necessary
+        }
+    });
+
+    // 2. Multi-Analysis Button Click
+    multiAnalyzeButton.addEventListener('click', async function() {
+        if (selectedUrls.length === 0 || selectedUrls.length > 5 || processing) return;
+
+        analysisActions.classList.add('hidden'); // Hide buttons while processing
+        processing = true;
+        searchButton.disabled = true;
+        showLoading(`Analyzing ${selectedUrls.length} papers... This may take a moment.`);
+
+        try {
+            const response = await fetch('{{ url_for("multi_summarize_api") }}', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ urls: selectedUrls })
+            });
+            
+            const result = await response.json();
+            hideLoading();
+            
+            if (result.success) {
+                addMessage('ai', result.message, true, result.analysis_url);
+                selectedUrls = []; // Clear selection
+            } else {
+                addMessage('ai', `Multi-Analysis Failed: ${result.error}`, true);
+            }
+
+        } catch (error) {
+            hideLoading();
+            console.error('Multi-Analysis Fetch Error:', error);
+            addMessage('ai', `A critical network error occurred during multi-analysis: ${error.message}`, false);
+        } finally {
+            processing = false;
+            searchButton.disabled = false;
+        }
+    });
+
+    // --- INITIALIZATION ---
+    document.addEventListener('DOMContentLoaded', function() {
+        // FIX for Issue 3: Read query from URL on page load (from Quick Search)
+        const urlParams = new URLSearchParams(window.location.search);
+        const initialQuery = urlParams.get('query');
+        
+        if (initialQuery) {
+            queryInput.value = initialQuery;
+            // Optionally, auto-submit the form
+            searchForm.dispatchEvent(new Event('submit'));
+        }
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PaperIQ Home | AI Research Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Include Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        
+        /* Gradient Text Style for Title */
+        .gradient-text {
+            background-image: linear-gradient(to right, #4f46e5, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* Interactive Feature Card Styles */
+        .feature-card, .hero-content {
+            /* This gives the transparent, frosted glass effect */
+            background-color: rgba(255, 255, 255, 0.8); 
+            backdrop-filter: blur(5px);
+            transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+            cursor: pointer;
+            border: 1px solid rgba(229, 231, 235, 0.5); 
+        }
+        .feature-card {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); 
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            /* Enhanced hover shadow to match theme colors */
+            box-shadow: 0 10px 20px -5px var(--card-color-shadow);
+            border-color: var(--card-color-border);
+        }
+        
+        /* Custom Properties for Card Colors (Used by inline style) */
+        .card-indigo {
+            --card-color-shadow: rgba(79, 70, 229, 0.35);
+            --card-color-border: #4f46e5;
+        }
+        .card-purple {
+            --card-color-shadow: rgba(168, 85, 247, 0.35);
+            --card-color-border: #a855f7;
+        }
+        .card-pink {
+            --card-color-shadow: rgba(236, 72, 153, 0.35);
+            --card-color-border: #ec4899;
+        }
+
+        /* Engaging Guide Design */
+        .guide-section {
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+            border-radius: 1rem;
+            position: relative;
+            overflow: hidden;
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(4px);
+        }
+        .guide-section::before { /* Stylized book spine */
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -10px;
+            width: 10px;
+            height: 100%;
+            background-color: #e5e7eb;
+            border-radius: 1rem 0 0 1rem;
+        }
+        .slide {
+            display: none;
+            /* Added min-height to prevent jumping */
+            min-height: 300px;
+            padding: 2rem;
+        }
+        .slide.active {
+            display: block;
+        }
+        /* Background Video Container */
+        .video-background {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: -1;
+            overflow: hidden;
+        }
+        .video-background video {
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            /* FINAL FIX: Increased opacity and REMOVED grayscale filter */
+            opacity: 0.75; 
+            /* REMOVED: filter: grayscale(100%); */
+        }
+    </style>
+</head>
+<body>
+<!-- BACKGROUND VIDEO (FIXED: Added onloadeddata to force playback) -->
+<div class="video-background">
+    <video id="bg-video" autoplay loop muted playsinline poster="placeholder.jpg" onloadeddata="this.play()">
+        <!-- NOTE: You must place a video named 'papers.mp4' in your 'static' folder -->
+        <source src="{{ url_for('static', filename='papers.mp4') }}" type="video/mp4">
+        <source src="https://www.w3schools.com/howto/rain.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+</div>
+
+<!-- Navigation Bar -->
+<nav class="bg-white shadow-md sticky top-0 z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <div class="flex-shrink-0">
+                <a href="{{ url_for('home_route') }}" class="text-3xl font-extrabold gradient-text">PaperIQ</a>
+            </div>
+            <div class="flex space-x-4 items-center">
+                <a href="{{ url_for('home_route') }}" class="text-gray-900 font-semibold hover:text-indigo-600 transition duration-150 border-b-2 border-indigo-500">
+                    Home
+                </a>
+                <a href="{{ url_for('upload_route') }}" class="text-gray-600 font-medium hover:text-indigo-600 transition duration-150 border-b-2 border-transparent hover:border-indigo-500">
+                    Document Analysis
+                </a>
+                <a href="{{ url_for('chat_route') }}" class="text-gray-600 font-medium hover:text-indigo-600 transition duration-150 border-b-2 border-transparent hover:border-indigo-500">
+                    AI Assistant
+                </a>
+                <a href="{{ url_for('history_route') }}" class="text-gray-600 font-medium hover:text-indigo-600 transition duration-150 border-b-2 border-transparent hover:border-indigo-500">
+                    History
+                </a>
+                <span class="text-gray-400">|</span>
+                <span class="text-sm font-medium text-gray-700">Hello, {{ session.get('username', 'User') }}!</span>
+                <a href="{{ url_for('logout_route') }}" class="flex items-center space-x-1 px-3 py-1 bg-red-500 text-white text-sm font-semibold rounded-lg hover:bg-red-600 transition duration-150 shadow-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewbox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="max-w-7xl mx-auto p-6 md:p-10 relative z-0">
+    
+    <!-- Hero Section: Dynamic Greeting and Quick Search -->
+    <div class="hero-content bg-indigo-700 text-white rounded-2xl shadow-2xl p-8 md:p-12 mb-12 flex flex-col md:flex-row items-center justify-between">
+        <div class="md:w-3/5">
+            <h2 class="text-4xl font-extrabold mb-4 leading-tight">
+                Welcome back, <span class="text-indigo-200">{{ session.get('username', 'User') }}!</span>
+            </h2>
+            <p class="text-indigo-200 text-lg mb-6">
+                You've analyzed <span class="font-bold text-xl text-yellow-300">{{ report_count }}</span> reports so far. Ready for the next insight?
+            </p>
+            
+            <!-- Quick Search Bar (Transfers query to chat page) -->
+            <form action="{{ url_for('chat_route') }}" method="GET" class="flex items-center space-x-3 bg-white p-2 rounded-lg shadow-xl max-w-lg">
+                <i class="fas fa-search text-gray-400 ml-2"></i>
+                <input type="text" name="query" placeholder="Quick search for a topic or paper..." 
+                       class="flex-grow p-1 text-gray-700 border-none focus:ring-0 focus:outline-none" required>
+                <button type="submit" class="bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-purple-700 transition duration-150">
+                    Go
+                </button>
+            </form>
+
+        </div>
+        <!-- Placeholder for Image/Visual -->
+        <div class="md:w-1/4 mt-8 md:mt-0 flex justify-center">
+            <i class="fas fa-robot text-indigo-400 text-8xl shadow-2xl"></i>
+        </div>
+    </div>
+
+    <!-- Feature Grid Section (COOLER Interactive Cards) -->
+    <h3 class="text-3xl font-bold text-gray-800 mb-8 border-b pb-2">Your PaperIQ Toolkit</h3>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+        <!-- 1. Local File Analysis - Indigo Theme -->
+        <a href="{{ url_for('upload_route') }}" class="feature-card group card-indigo block p-8 rounded-xl border border-indigo-500/50 hover:border-indigo-600 transition-all duration-300">
+            <div class="w-16 h-16 flex items-center justify-center rounded-full mb-6 bg-indigo-100/70 shadow-xl shadow-indigo-400/40">
+                <i class="fas fa-upload text-indigo-700 text-3xl"></i>
+            </div>
+            <h4 class="text-xl font-bold text-indigo-800 mb-2">1. Local File Analysis</h4>
+            <p class="text-gray-700">Upload PDF/DOCX for deep summarization, keyword extraction, and visualization.</p>
+        </a>
+
+        <!-- 2. AI Research Assistant - Purple Theme -->
+        <a href="{{ url_for('chat_route') }}" class="feature-card group card-purple block p-8 rounded-xl border border-purple-500/50 hover:border-purple-600 transition-all duration-300">
+            <div class="w-16 h-16 flex items-center justify-center rounded-full mb-6 bg-purple-100/70 shadow-xl shadow-purple-400/40">
+                <i class="fas fa-comments text-purple-700 text-3xl"></i>
+            </div>
+            <h4 class="text-xl font-bold text-purple-800 mb-2">2. AI Research Assistant</h4>
+            <p class="text-gray-700">Search the web, select papers, and synthesize multi-source reports using Gemini.</p>
+        </a>
+        
+        <!-- 3. Analysis History - Pink Theme -->
+        <a href="{{ url_for('history_route') }}" class="feature-card group card-pink block p-8 rounded-xl border border-pink-500/50 hover:border-pink-600 transition-all duration-300">
+            <div class="w-16 h-16 flex items-center justify-center rounded-full mb-6 bg-pink-100/70 shadow-xl shadow-pink-400/40">
+                <i class="fas fa-archive text-pink-700 text-3xl"></i>
+            </div>
+            <h4 class="text-xl font-bold text-pink-800 mb-2">3. Review Past Reports</h4>
+            <p class="text-gray-700">Access and reload all your permanently saved analysis history via MongoDB.</p>
+        </a>
+
+    </div>
+    
+    <!-- Interactive Guide Section (Book Pages Effect) -->
+    <div class="mt-16 pt-8 pb-8 px-4 md:px-8 guide-section">
+        <h3 class="text-3xl font-extrabold text-indigo-700 mb-6 text-center">
+            How PaperIQ Works: Interactive Guide
+        </h3>
+        
+        <div id="guide-slides" class="relative overflow-hidden">
+            
+            <!-- Slide 1: Overview -->
+            <div class="slide active text-center">
+                <i class="fas fa-book-open text-5xl text-indigo-500 mb-4"></i>
+                <h4 class="text-2xl font-bold text-gray-900 mb-3">Welcome to PaperIQ: Automated Research</h4>
+                <p class="text-lg text-gray-700 mx-auto max-w-2xl">
+                    PaperIQ is your comprehensive research partner. We combine powerful deep learning models with Gemini's intelligence and permanent MongoDB storage to transform how you analyze and synthesize academic literature.
+                </p>
+                <div class="mt-6 pt-4 border-t border-gray-100 mx-auto max-w-xl">
+                    <p class="text-sm text-gray-500 italic">This platform is built on Flask, advanced HuggingFace Transformers (BART), and secure MongoDB persistence.</p>
+                </div>
+            </div>
+
+            <!-- Slide 2: Analysis Pipeline -->
+            <div class="slide text-center">
+                <i class="fas fa-cogs text-5xl text-purple-500 mb-4"></i>
+                <h4 class="text-2xl font-bold text-gray-900 mb-3">The Core NLP Pipeline</h4>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mx-auto max-w-4xl">
+                    <div class="p-3 bg-purple-50 rounded-lg">
+                        <p class="font-semibold">1. Extractive Summary</p>
+                        <p class="text-sm text-gray-600">Uses TextRank (Graph theory) to select the most important original sentences.</p>
+                    </div>
+                    <div class="p-3 bg-purple-50 rounded-lg">
+                        <p class="font-semibold">2. Abstractive Summary</p>
+                        <p class="text-sm text-gray-600">Uses BART-Large-CNN to generate human-readable, synthesized text.</p>
+                    </div>
+                    <div class="p-3 bg-purple-50 rounded-lg">
+                        <p class="font-semibold">3. Readability & Metrics</p>
+                        <p class="text-sm text-gray-600">Calculates Flesch-Kincaid Grade and ROUGE quality scores.</p>
+                    </div>
+                    <div class="p-3 bg-purple-50 rounded-lg">
+                        <p class="font-semibold">4. Keyword & Entity</p>
+                        <p class="text-sm text-gray-600">KeyBERT and spaCy identify core concepts and named entities for visualization.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 3: AI Assistant Power -->
+            <div class="slide text-center">
+                <i class="fas fa-meteor text-5xl text-pink-500 mb-4"></i>
+                <h4 class="text-2xl font-bold text-gray-900 mb-3">AI Synthesis & Multi-Analysis</h4>
+                <p class="text-lg text-gray-700 mx-auto max-w-2xl">
+                    The AI Research Assistant is powered by **Gemini** with Google Search Grounding. This allows you to:
+                </p>
+                <ul class="list-disc list-inside text-left mx-auto max-w-md mt-4 text-gray-700">
+                    <li>**Search:** Find academic papers using natural language.</li>
+                    <li>**Select:** Choose up to 5 documents from the web.</li>
+                    <li>**Synthesize:** Gemini combines all sources into one master report summary.</li>
+                    <li>**Analyze:** The full NLP pipeline runs on the *synthesized* report for detailed metrics.</li>
+                </ul>
+            </div>
+            
+        </div>
+
+        <!-- Carousel Controls -->
+        <div class="flex justify-center space-x-4 mt-6">
+            <button id="prev-slide" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-full hover:bg-gray-300 disabled:opacity-50">
+                <i class="fas fa-chevron-left"></i> Previous
+            </button>
+            <div id="slide-indicators" class="flex space-x-2 items-center">
+                <!-- Indicators populated by JS -->
+            </div>
+            <button id="next-slide" class="px-4 py-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 disabled:opacity-50">
+                Next <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+    
+    <div class="mt-12 text-center text-gray-500">
+        <p class="text-sm">&copy; 2024 PaperIQ | All rights reserved.</p>
+    </div>
+</div>
+
+<script>
+    // --- VIDEO PLAYBACK FIX ---
+    document.getElementById('bg-video').play().catch(error => {
+        // Autoplay may be blocked; user interaction usually fixes it.
+        console.log("Video autoplay blocked. Waiting for interaction.", error);
+    });
+
+    // --- INTERACTIVE GUIDE SLIDESHOW ---
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('#guide-slides .slide');
+    const totalSlides = slides.length;
+    const prevButton = document.getElementById('prev-slide');
+    const nextButton = document.getElementById('next-slide');
+    const indicators = document.getElementById('slide-indicators');
+    let autoAdvanceInterval;
+
+    function showSlide(index) {
+        // Ensure index is within bounds (looping behavior)
+        if (index >= totalSlides) {
+            index = 0; 
+        } else if (index < 0) {
+            index = totalSlides - 1; 
+        }
+        
+        currentSlide = index;
+
+        // Hide all, show active
+        slides.forEach((slide, i) => {
+            slide.classList.remove('active');
+            if (i === currentSlide) {
+                slide.classList.add('active');
+            }
+        });
+
+        updateIndicators();
+        resetAutoAdvance(); // Reset timer after slide change (manual or auto)
+    }
+
+    function updateIndicators() {
+        indicators.innerHTML = '';
+        slides.forEach((_, i) => {
+            const indicator = document.createElement('button');
+            indicator.className = `w-3 h-3 rounded-full transition-colors duration-300 ${i === currentSlide ? 'bg-indigo-600' : 'bg-gray-400 hover:bg-gray-500'}`;
+            // Added preventDefault to indicator click to stop page jump
+            indicator.addEventListener('click', (e) => { e.preventDefault(); showSlide(i); });
+            indicators.appendChild(indicator);
+        });
+    }
+
+    function resetAutoAdvance() {
+        clearInterval(autoAdvanceInterval);
+        autoAdvanceInterval = setInterval(() => {
+            showSlide(currentSlide + 1);
+        }, 8000); // Auto-advance every 8 seconds
+    }
+    
+    // Event Listeners for manual control
+    prevButton.addEventListener('click', (e) => { e.preventDefault(); showSlide(currentSlide - 1); });
+    nextButton.addEventListener('click', (e) => { e.preventDefault(); showSlide(currentSlide + 1); });
+
+    // Initialize slides and auto-advance
+    showSlide(0);
+    resetAutoAdvance(); 
+</script>
+
+</body>
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Detailed Visuals | PaperIQ</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f0f4f8;
+}
+.chart-box {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e5e7eb;
+}
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 0.25rem;
+}
+.gradient-text {
+    background-image: linear-gradient(to right, #4f46e5, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+}
+</style>
+</head>
+
+<body>
+
+<nav class="bg-white shadow-md sticky top-0 z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <div class="flex-shrink-0">
+                <a href="{{ url_for('home_route') }}" class="text-3xl font-extrabold gradient-text">PaperIQ</a>
+            </div>
+            <div class="flex space-x-4 items-center">
+                <a href="{{ url_for('home_route') }}" class="text-gray-600 font-medium hover:text-indigo-600 transition duration-150 border-b-2 border-transparent hover:border-indigo-500">
+                    Home
+                </a>
+                <a href="{{ url_for('upload_route') }}" class="text-gray-900 font-semibold hover:text-indigo-600 transition duration-150 border-b-2 border-indigo-500">
+                    Document Analysis
+                </a>
+                <a href="{{ url_for('chat_route') }}" class="text-gray-600 font-medium hover:text-indigo-600 transition duration-150 border-b-2 border-transparent hover:border-indigo-500">
+                    AI Assistant
+                </a>
+                <a href="{{ url_for('history_route') }}" class="text-gray-600 font-medium hover:text-indigo-600 transition duration-150 border-b-2 border-transparent hover:border-indigo-500">
+                    History
+                </a>
+                <span class="text-gray-400">|</span>
+                <span class="text-sm font-medium text-gray-700">Hello, {{ session.get('username', 'User') }}!</span>
+                <a href="{{ url_for('logout_route') }}" class="flex items-center space-x-1 px-3 py-1 bg-red-500 text-white text-sm font-semibold rounded-lg hover:bg-red-600 transition duration-150 shadow-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewbox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container mx-auto p-6 md:p-10">
+    <h1 class="text-4xl font-extrabold text-gray-900 mb-2">Detailed Visualizations</h1>
+    <h2 class="text-xl font-medium text-gray-700 mb-6">Visuals for: 
+        <span class="font-bold text-indigo-600">{{ visual_data.filename }}</span>
+    </h2>
+
+    <div class="mb-8">
+        <a href="{{ url_for('dashboard_route') }}" 
+           class="flex items-center space-x-2 w-fit px-4 py-2 text-indigo-600 border border-indigo-300 font-semibold rounded-lg hover:bg-indigo-50 transition duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewbox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            <span>Back to Summary Dashboard</span>
+        </a>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="chart-box bg-indigo-50 border-indigo-200 text-center">
+            <p class="text-sm font-medium text-indigo-600">Total Words</p>
+            <p class="text-4xl font-bold text-indigo-800">{{ '{:,}'.format(visual_data.total_words) }}</p>
+        </div>
+        <div class="chart-box bg-indigo-50 border-indigo-200 text-center">
+            <p class="text-sm font-medium text-indigo-600">Total Sentences</p>
+            <p class="text-4xl font-bold text-indigo-800">{{ '{:,}'.format(visual_data.total_sentences) }}</p>
+        </div>
+        <div class="chart-box bg-indigo-50 border-indigo-200 text-center">
+            <p class="text-sm font-medium text-indigo-600">Avg. Words/Sentence</p>
+            <p class="text-4xl font-bold text-indigo-800">
+                {% if visual_data.total_sentences > 0 %} {{ '{:.1f}'.format(visual_data.total_words / visual_data.total_sentences) }}
+                {% else %}
+                    0
+                {% endif %}
+            </p>
+        </div>
+        <div class="chart-box bg-orange-50 border-orange-200 text-center">
+            <p class="text-sm font-medium text-orange-600">FK Readability Grade</p>
+            <p class="text-4xl font-bold text-orange-800">{{ '{:.1f}'.format(visual_data.fk_grade) }}</p>
+            <p class="text-xs text-gray-500 mt-1">Target: ~10–12 for academic text.</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="chart-box">
+            <h3 class="section-title mb-4 text-purple-700">📈 Keyword Relevance Scores (Top 10)</h3>
+            <canvas id="keywordChart"></canvas>
+        </div>
+        
+        <div class="chart-box">
+            <h3 class="section-title mb-4 text-red-700">🌍 Named Entity Distribution (Token Count)</h3>
+            <canvas id="entityChart"></canvas>
+        </div>
+
+        <div class="lg:col-span-2 chart-box">
+            <h3 class="section-title mb-4 text-blue-700">📏 Sentence Length Distribution (Words per Sentence)</h3>
+            <canvas id="lengthChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        // Robust way to parse Jinja data into JavaScript object
+        const visualData = JSON.parse('{{ visual_data | tojson | safe }}');
+
+        // Extract chart data
+        const keywordLabels = visualData.keyword_data.labels;
+        const keywordData = visualData.keyword_data.counts;
+        const entityLabels = visualData.entity_counts.labels;
+        const entityData = visualData.entity_counts.counts;
+        const lengthLabels = visualData.sentence_length_hist.labels;
+        const lengthData = visualData.sentence_length_hist.counts;
+
+        // === Chart 1: Keyword Relevance ===
+        new Chart(document.getElementById('keywordChart'), {
+            type: 'bar',
+            data: {
+                labels: keywordLabels,
+                datasets: [{
+                    label: 'Relevance Score',
+                    data: keywordData,
+                    backgroundColor: 'rgba(168, 85, 247, 0.8)',
+                    borderColor: 'rgba(168, 85, 247, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                scales: {
+                    x: { beginAtZero: true, title: { display: true, text: 'Relevance Score' } },
+                    y: { grid: { display: false } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // === Chart 2: Named Entities ===
+        new Chart(document.getElementById('entityChart'), {
+            type: 'doughnut',
+            data: {
+                labels: entityLabels,
+                datasets: [{
+                    label: 'Entity Count',
+                    data: entityData,
+                    backgroundColor: [
+                        'rgba(234, 88, 12, 0.7)',
+                        'rgba(59, 130, 246, 0.7)',
+                        'rgba(16, 185, 129, 0.7)',
+                        'rgba(245, 158, 11, 0.7)',
+                        'rgba(236, 72, 153, 0.7)',
+                        'rgba(192, 132, 252, 0.7)'
+                    ],
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'right' } }
+            }
+        });
+
+        // === Chart 3: Sentence Length Histogram ===
+        new Chart(document.getElementById('lengthChart'), {
+            type: 'bar',
+            data: {
+                labels: lengthLabels,
+                datasets: [{
+                    label: 'Number of Sentences',
+                    data: lengthData,
+                    backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Sentence Count' } },
+                    x: { title: { display: true, text: 'Word Count Range' }, grid: { display: false } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+    } catch (e) {
+        console.error("Error parsing visual data for charts:", e);
+        const errorBox = document.createElement('div');
+        errorBox.className = 'p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg mt-8';
+        errorBox.textContent = 'Could not load charts. Please re-upload the document.';
+        document.querySelector('.container').appendChild(errorBox);
+    }
+});
+</script>
+
+</body>
+</html>
