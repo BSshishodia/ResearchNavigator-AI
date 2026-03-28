@@ -1,74 +1,230 @@
-# 🚀 Research Navigator: Semantic Paper Analyzer
+# 📄 Research Navigator: Semantic Paper Analyzer (PaperIQ)
 
-**An advanced, full-stack AI platform for rapid document analysis, semantic synthesis, and academic insight extraction.**
-
-![Project Banner](https://raw.githubusercontent.com/BSshishodia/ResearchNavigator-AI/main/static/papers.mp4) 
-*(Note: Replace with a static image or GIF of your landing page for better GitHub viewing)*
-
-## 📖 Project Overview
-[cite_start]The exponential growth of academic literature presents a major challenge for researchers[cite: 5]. [cite_start]**Research Navigator** (PaperIQ) is a containerized solution that goes beyond simple keyword searches, enabling users to analyze local files and utilize a search-grounded Gemini AI Assistant to synthesize multiple web sources instantly[cite: 8].
-
-### **Core Capabilities**
-* [cite_start]**Hybrid Summarization:** Generates **Abstractive summaries** via BART-Large-CNN and **Extractive highlights** using TextRank[cite: 30, 31].
-* [cite_start]**Search-Grounded AI Assistant:** Powered by **Gemini 2.5 Flash**, the bot performs real-time searches to fetch and synthesize up to 5 papers into one cohesive report[cite: 35, 37].
-* [cite_start]**Deep-Level NLP Metrics:** Instant extraction of Named Entities (spaCy), Keywords (KeyBERT), and **Flesch-Kincaid Readability** grades[cite: 32, 33].
-* [cite_start]**Persistent History:** A secure **MongoDB** backend persists all user profiles and analysis history[cite: 9, 23].
+> 🚀 An advanced full-stack AI platform for rapid document analysis, semantic synthesis, and academic insight extraction.
 
 ---
 
-## 🏗️ System Architecture & Data Flow
-[cite_start]The application follows a tightly integrated modular structure to ensure stability and data integrity[cite: 19].
+## 📌 Project Overview
 
-### **1. The Data Flow**
-1.  [cite_start]**Ingestion Layer:** Handles local PDF/DOCX uploads and web-scraped content from the AI Assistant[cite: 25, 26].
-2.  [cite_start]**Preprocessing Layer:** Robust text cleaning and sentence segmentation using NLTK[cite: 27].
-3.  [cite_start]**NLP Pipeline Layer:** * **NER:** Identifies organizations, people, and locations via spaCy[cite: 32].
-    * [cite_start]**Keywords:** Scores relevance using KeyBERT[cite: 32].
-    * [cite_start]**Summarization:** Concurrent execution of BART-CNN and TextRank models[cite: 30, 31].
-4.  [cite_start]**Persistence Layer:** All results are committed to user-specific collections in MongoDB[cite: 23].
+The exponential growth of academic literature and digital documents has made research increasingly complex and time-consuming.
 
-### **2. Workflow Diagram**
+**Research Navigator (PaperIQ)** solves this problem by providing an **AI-powered system** that enables:
 
-[cite_start]*User Action -> System Processing (NLP Pipeline) -> External Data (Gemini/Search) -> Persistent Storage (MongoDB)[cite: 104].*
+- Deep semantic understanding of documents  
+- Multi-source research synthesis  
+- Instant extraction of meaningful insights  
+
+Unlike traditional tools, PaperIQ goes beyond keyword search and performs **context-aware analysis** using modern NLP and LLMs.
+
+---
+
+## ✨ Key Features
+
+### 🔍 Hybrid Summarization
+- **Abstractive**: BART-Large-CNN (HuggingFace Transformers)
+- **Extractive**: TextRank (NetworkX + Sentence Transformers)
+
+### 🤖 Search-Grounded AI Assistant
+- Powered by **Gemini 2.5 Flash API**
+- Fetches and synthesizes up to **5 research papers**
+- Generates one cohesive, structured report
+
+### 🧠 Deep NLP Insights
+- Named Entity Recognition (spaCy)
+- Keyword Extraction (KeyBERT)
+- Readability Score (Flesch-Kincaid Grade)
+
+### 📊 Interactive Visualizations
+- Entity distribution charts  
+- Keyword relevance graphs  
+- Sentence length histograms  
+- Readability metrics  
+
+### 💾 Persistent History
+- MongoDB-based storage  
+- User-specific analysis history  
+- Secure authentication system  
+
+---
+
+## 🏗️ System Architecture
+
+### 🔄 Data Flow
+
+```
+User Input → Document Upload / Query
+        ↓
+Preprocessing (NLTK)
+        ↓
+NLP Pipeline
+   ├── NER (spaCy)
+   ├── Keywords (KeyBERT)
+   ├── Summarization (BART + TextRank)
+        ↓
+Gemini AI (Search + Synthesis)
+        ↓
+MongoDB Storage
+        ↓
+Dashboard & Visualizations
+```
+
+---
+
+## 🧩 Core Modules
+
+### 🔐 1. Authentication & Persistence
+- Secure login & registration  
+- OTP Email Verification  
+- MongoDB user profiles  
+
+### 📄 2. Document Processing
+- PDF (PyMuPDF)  
+- DOCX (python-docx)  
+- Web content extraction  
+
+### 🧠 3. NLP Analysis Engine
+- Summarization (Abstractive + Extractive)  
+- Named Entity Recognition  
+- Keyword extraction  
+- Readability scoring  
+
+### 🌐 4. AI Research Assistant
+- Gemini API integration  
+- Google Search grounding  
+- Multi-paper synthesis  
+
+### 📊 5. Visualization & Reporting
+- Chart.js dashboards  
+- ROUGE metrics  
+- Interactive analytics  
 
 ---
 
 ## 🐳 Why Docker?
-[cite_start]This project is fully containerized to ensure **Environment Parity** across different development and production machines[cite: 100].
 
-* **Microservices Orchestration:** Uses `docker-compose` to manage the Flask web server and MongoDB database as separate, linked services.
-* **Optimized Build:** The `Dockerfile` is configured to pre-fetch large transformer model weights and NLTK corpora (including `punkt_tab`) during the build stage to prevent runtime errors.
-* [cite_start]**Portability:** Simplifies deployment by encapsulating complex ML dependencies like PyTorch, Transformers, and spaCy[cite: 44, 100].
+- ✅ Environment consistency across machines  
+- ✅ Preloaded ML models (BART, spaCy, NLTK)  
+- ✅ Microservices architecture (Flask + MongoDB)  
+- ✅ One-command deployment  
 
 ---
 
-## 🛠️ Technology Stack
-| Category | Tools & Libraries |
-| :--- | :--- |
-| **Backend** | [cite_start]Python 3, Flask, Werkzeug [cite: 44] |
-| **Database** | [cite_start]MongoDB (PyMongo) [cite: 44] |
-| **AI/LLM** | [cite_start]Gemini 2.5 Flash API [cite: 44] |
-| **NLP Pipeline** | [cite_start]BART-Large-CNN, KeyBERT, Sentence-Transformers, spaCy, NLTK [cite: 44] |
-| **Data Science** | [cite_start]NumPy, Scikit-learn, NetworkX [cite: 44] |
-| **Frontend** | [cite_start]Jinja2, Tailwind CSS, Chart.js [cite: 44] |
-| **Document Handling** | [cite_start]PyMuPDF (PDF), python-docx (DOCX) [cite: 44] |
+## 🛠️ Tech Stack
+
+| Category | Tools |
+|--------|------|
+| Backend | Python, Flask, Werkzeug |
+| Database | MongoDB (PyMongo) |
+| AI/LLM | Gemini 2.5 Flash API |
+| NLP | BART, spaCy, KeyBERT, NLTK |
+| Data Science | NumPy, Scikit-learn, NetworkX |
+| Frontend | Jinja2, Tailwind CSS, Chart.js |
+| Docs Handling | PyMuPDF, python-docx |
 
 ---
 
 ## 🚀 Quick Start
 
-### **1. Prerequisites**
-* [cite_start]**Docker Desktop** installed[cite: 100].
-* [cite_start]**Gemini API Key** (Obtained from Google AI Studio)[cite: 68].
+### 🔧 Prerequisites
+- Docker Desktop  
+- Gemini API Key (Google AI Studio)  
 
-### **2. Installation**
+---
+
+### 📥 Installation
+
 ```bash
 # Clone the repository
-git clone [https://github.com/BSshishodia/ResearchNavigator-AI.git](https://github.com/BSshishodia/ResearchNavigator-AI.git)
+git clone https://github.com/BSshishodia/ResearchNavigator-AI.git
 cd ResearchNavigator-AI
+```
 
-# Configure Environment Variables
-# Create a .env file and add your credentials:
+---
+
+### ⚙️ Environment Setup
+
+Create a `.env` file:
+
+```env
 GEMINI_API_KEY=your_key_here
 MONGO_URI=mongodb://db:27017/paperiq_db
 SECRET_KEY=your_secret_key
+```
+
+---
+
+### ▶️ Run with Docker
+
+```bash
+docker-compose up --build
+```
+
+---
+
+### 🌐 Access the App
+
+```
+http://localhost:8080
+```
+
+---
+
+## 📊 Outcomes & Capabilities
+
+- 📌 Intelligent Information Extraction  
+- 📌 Semantic Search (Meaning-based retrieval)  
+- 📌 Multi-paper synthesis  
+- 📌 Research recommendation system  
+- 📌 Conceptual knowledge structuring  
+- 📌 Scalable document processing  
+
+---
+
+## 🧪 Testing & Results
+
+- ✔ Stable user authentication with OTP  
+- ✔ Accurate document processing (PDF/DOCX)  
+- ✔ Effective AI-powered synthesis  
+- ✔ Reliable MongoDB persistence  
+- ✔ Fully responsive UI with interactive visuals  
+
+---
+
+## 🎯 Future Enhancements
+
+- 🔗 Knowledge Graph Visualization  
+- 📚 Advanced Paper Recommendation System  
+- 🧠 Fine-tuned domain-specific NLP models  
+- ☁️ Cloud deployment (AWS / Hugging Face Spaces)  
+- 🛡️ Role-based admin dashboard  
+
+---
+
+## 📷 Preview
+
+> ⚠️ Add a screenshot of your landing page here
+
+```
+![App Preview](assets/preview.png)
+```
+
+---
+
+## 👨‍💻 Author
+
+**Bhav Shishodia**  
+M.Tech AI/ML  
+
+---
+
+## ⭐ Final Thoughts
+
+Research Navigator (PaperIQ) demonstrates how **AI + NLP + Web Systems** can transform research workflows by:
+
+- Reducing manual effort  
+- Enhancing understanding  
+- Enabling faster decision-making  
+
+---
+
+⭐ If you like this project, consider giving it a star!
