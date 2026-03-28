@@ -203,9 +203,8 @@ http://localhost:8080
 ## 📷 Preview
 
 ```
-![App Preview](assets/preview1.png)
-![App Preview](assets/preview2.png)
-
+![Home](assets/preview1.png)
+![Visualization](assets/preview2.png)
 ```
 
 ---
