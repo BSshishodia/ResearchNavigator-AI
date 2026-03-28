@@ -202,10 +202,9 @@ http://localhost:8080
 
 ## 📷 Preview
 
-```
+
 ![Home](assets/preview1.png)
 ![Visualization](assets/preview2.png)
-```
 
 ---
 
