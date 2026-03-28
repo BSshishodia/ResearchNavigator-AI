@@ -202,10 +202,9 @@ http://localhost:8080
 
 ## 📷 Preview
 
-> ⚠️ Add a screenshot of your landing page here
-
 ```
-![App Preview](assets/preview.png)
+![App Preview](assets/preview1.png)
+![App Preview](assets/preview2.png)
 ```
 
 ---
